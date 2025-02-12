@@ -1,4 +1,4 @@
-name: Deploy
+name: Deployment Pipeline
 
 on:
   push:
@@ -27,9 +27,13 @@ jobs:
         run: |
           pytest --maxfail=1 --disable-warnings -q
 
-      - name: Trigger Render Deployment
+      - name: Deploy to EC2
         run: |
-          curl -X POST "https://api.render.com/deploy/srv/${{ secrets.RENDER_SERVICE_ID }}/deploy" \
-            -H "Accept: application/json" \
-            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
-            -d '{"clearCache": false}'
+          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_PUBLIC_IP }} << 'EOF'
+            cd fastapi-book-project
+            git pull origin main
+            sudo docker build -t fastapi-app .
+            sudo docker stop fastapi-app || true
+            sudo docker rm fastapi-app || true
+            sudo docker run -d --name fastapi-app -p 8000:8000 fastapi-app
+          EOF
