@@ -29,7 +29,7 @@ jobs:
 
       - name: Deploy to EC2
         run: |
-          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_PUBLIC_IP }} << 'EOF'
+          ssh -o StrictHostKeyChecking=no ubuntu@14.60.78.55
             cd fastapi-book-project
             git pull origin main
             sudo docker build -t fastapi-app .
