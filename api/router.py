@@ -14,17 +14,13 @@ sample_books = [
 for book in sample_books:
     db.add_book(book)
 
-
-@api_router.get("/books/{book_id}")
-async def get_book(book_id: int):
-    book = db.get_book(book_id)
-    print(book)
-    if not book:
-        raise HTTPException(status_code=404, detail="Book not found")
-    return book
-
-@api_router.delete("/books/{book_id}", status_code=204)
-async def delete_book(book_id: int):
-    deleted = db.delete_book(book_id)  # ✅ Use return value
-    if not deleted:
+# Root route
+@api_router.get("/", tags=["root"])@api_router.get("/books/{book_id}") async def get_book(book_id: int): async 
+def root(): book = db.get_book(book_id)
+    return {"message": "Welcome to the FastAPI Book API!"} print(book) if not book: raise 
+        HTTPException(status_code=404, detail="Book not found")
+# Healthcheck route return book
+@api_router.get("/healthcheck", tags=["health"]) @api_router.delete("/books/{book_id}", status_code=204) async 
+def delete_book(book_id: int): async def healthcheck(): deleted = db.delete_book(book_id) # ✅ Use return value
+    return {"status": "ok"}    if not deleted:
         raise HTTPException(status_code=404, detail="Book not found")
