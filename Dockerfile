@@ -1,20 +1,20 @@
-# Use a Python 3.10 image as base
 FROM python:3.10-slim
 
-# Set the working directory
-WORKDIR /app
+# Install dependencies
+RUN apt-get update && apt-get install -y nginx
 
-# Copy the application code into the container
-COPY . .
+# Install application dependencies
+COPY requirements.txt /app/requirements.txt
+RUN pip install -r /app/requirements.txt
 
-# Install the dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+# Copy application code
+COPY . /app
 
-# Install gunicorn explicitly
-RUN pip install gunicorn
+# Copy the nginx configuration file
+COPY nginx.conf /etc/nginx/nginx.conf
 
-# Expose port 8000
-EXPOSE 8000
+# Expose the application port
+EXPOSE 80
 
-# Start the FastAPI application with gunicorn
-CMD ["gunicorn", "-w", "4", "main:app", "--bind", "0.0.0.0:8000"]
+# Start both Nginx and the FastAPI app with Gunicorn
+CMD ["nginx", "-g", "daemon off;"]
