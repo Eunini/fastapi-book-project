@@ -1,18 +1,21 @@
-# Use a lightweight Python image
+# Use a Python 3.10 image as base
 FROM python:3.10-slim
 
 # Set the working directory
 WORKDIR /app
 
-# Copy the application files
+# Copy the application code into the container
 COPY . .
 
-# Install dependencies
-RUN pip install --no-cache-dir --upgrade pip \
-    && pip install --no-cache-dir -r requirements.txt
+# Install the dependencies
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Expose the port FastAPI runs on
+# Install gunicorn explicitly
+RUN pip install gunicorn
+
+# Expose port 8000
 EXPOSE 8000
 
-# Start the FastAPI application using Gunicorn with Uvicorn workers
+# Start the FastAPI application with gunicorn
 CMD ["gunicorn", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "app.main:app", "--bind", "0.0.0.0:8000"]
+
