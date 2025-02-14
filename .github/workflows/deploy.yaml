@@ -25,25 +25,25 @@ jobs:
           
           ssh -o StrictHostKeyChecking=no -i private_key.pem $USER@$HOST << 'EOF'
             set -e  # Exit on error
-
+            
             echo "🚀 Connecting to EC2 and deploying..."
             cd /home/ubuntu/fastapi-book-project
-
+            
             echo "🔄 Resetting and pulling latest code..."
             git reset --hard origin/main
             git pull origin main
-
+            
             echo "📦 Installing dependencies..."
             source venv/bin/activate
             pip install --no-cache-dir -r requirements.txt
-
+            
             echo "🔄 Restarting services..."
             sudo systemctl restart nginx
             sudo systemctl restart fastapi
 
             echo "✅ Checking service status..."
             sudo systemctl status fastapi -n 10 --no-pager
-
+            
             echo "🎉 Deployment successful!"
-EOF
+          EOF  
 
