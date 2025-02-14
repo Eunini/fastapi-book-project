@@ -24,11 +24,25 @@ jobs:
           chmod 600 private_key.pem
           
           ssh -o StrictHostKeyChecking=no -i private_key.pem $USER@$HOST << 'EOF'
+            set -e  # Exit on any error
+
             cd /home/ubuntu/fastapi-book-project
+
+            # Pull the latest changes
             git pull origin main
-            
+
+            # Build and run the Docker container
             sudo docker build -t fastapi-app .
-            sudo docker stop fastapi-app || true
-            sudo docker rm fastapi-app || true
+
+            # Stop and remove existing container if running
+            if sudo docker ps -q --filter "name=fastapi-app"; then
+              sudo docker stop fastapi-app
+              sudo docker rm fastapi-app
+            fi
+
+            # Run the new container
             sudo docker run -d --name fastapi-app -p 8000:8000 fastapi-app
+
+            # Restart Nginx to apply any config changes
+            sudo systemctl restart nginx
           EOF
