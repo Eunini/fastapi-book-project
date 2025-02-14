@@ -17,5 +17,5 @@ COPY . .
 # Expose the port
 EXPOSE 8000
 
-# Command to run the application
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"] ive removed it, is this okay?
+# Run Gunicorn with Uvicorn workers
+CMD ["gunicorn", "-k", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8000", "app.main:app"]
