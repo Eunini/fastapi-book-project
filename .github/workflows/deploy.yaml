@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:  # Allows manual triggering from GitHub Actions UI
 
 jobs:
   deploy:
@@ -13,36 +14,43 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Set up SSH Key
+        run: |
+          echo "${{ secrets.EC2_SSH_KEY }}" > private_key.pem
+          chmod 600 private_key.pem
+
       - name: SSH into EC2 and Deploy
         env:
           PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
           HOST: ec2-51-21-160-200.eu-north-1.compute.amazonaws.com
           USER: ubuntu
-
         run: |
-          echo "$PRIVATE_KEY" > private_key.pem
-          chmod 600 private_key.pem
-          
           ssh -o StrictHostKeyChecking=no -i private_key.pem $USER@$HOST << 'EOF'
             set -e  # Exit on any error
-
+            
             cd /home/ubuntu/fastapi-book-project
 
+            # Ensure there are no uncommitted changes
+            git reset --hard HEAD
+            
             # Pull the latest changes
             git pull origin main
-
+            
             # Build and run the Docker container
             sudo docker build -t fastapi-app .
-
+            
             # Stop and remove existing container if running
             if sudo docker ps -q --filter "name=fastapi-app"; then
               sudo docker stop fastapi-app
               sudo docker rm fastapi-app
             fi
-
-            # Run the new container
+            
+            # Remove any unused Docker resources to free up space
+            sudo docker system prune -f
+            
+            # Run the new container (use --restart unless-stopped for auto-restart)
             sudo docker run -d --name fastapi-app -p 8000:8000 fastapi-app
-
+            
             # Restart Nginx to apply any config changes
             sudo systemctl restart nginx
           EOF
